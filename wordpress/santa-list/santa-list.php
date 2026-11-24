@@ -20,6 +20,7 @@ require_once SANTA_LIST_DIR . 'includes/class-santa-list-filter.php';
 require_once SANTA_LIST_DIR . 'includes/class-santa-list-geofence.php';
 require_once SANTA_LIST_DIR . 'includes/class-santa-list-api.php';
 require_once SANTA_LIST_DIR . 'includes/class-santa-list-shortcodes.php';
+require_once SANTA_LIST_DIR . 'includes/class-santa-list-updater.php';
 require_once SANTA_LIST_DIR . 'admin/class-santa-list-admin.php';
 
 register_activation_hook( __FILE__, array( 'Santa_List_DB', 'install' ) );
@@ -29,6 +30,7 @@ add_action( 'plugins_loaded', 'santa_list_init' );
 function santa_list_init() {
     Santa_List_API::init();
     Santa_List_Shortcodes::init();
+    Santa_List_Updater::init();   // GitHub update checker
     if ( is_admin() ) {
         Santa_List_Admin::init();
     }
