@@ -30,10 +30,18 @@ class Santa_List_Updater {
 
     const GITHUB_USER = 'baelinc';
     const GITHUB_REPO = 'naughty_nice_list';
-    const PLUGIN_SLUG = 'santa-list/santa-list.php'; // relative to wp-content/plugins/
 
     /** How long to cache the API response (12 hours). */
     const CACHE_TTL = 43200;
+
+    /**
+     * Returns the plugin's slug as WordPress sees it, e.g.
+     * "santa-list/santa-list.php" or "admin-XYZ/santa-list.php"
+     * depending on what folder the host installed it into.
+     */
+    public static function plugin_basename() {
+        return plugin_basename( SANTA_LIST_DIR . 'santa-list.php' );
+    }
 
     public static function init() {
         add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'check_for_update' ) );
@@ -55,29 +63,29 @@ class Santa_List_Updater {
             return $transient;
         }
 
-        $latest = ltrim( $release['tag_name'], 'v' );
+        $latest     = ltrim( $release['tag_name'], 'v' );
+        $plugin_key = self::plugin_basename(); // actual installed path, whatever folder name
 
         if ( version_compare( $latest, SANTA_LIST_VERSION, '>' ) ) {
-            $transient->response[ self::PLUGIN_SLUG ] = (object) array(
-                'slug'        => 'santa-list',
-                'plugin'      => self::PLUGIN_SLUG,
-                'new_version' => $latest,
-                'url'         => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
-                'package'     => self::get_download_url( $release ),
-                'icons'       => array(),
-                'banners'     => array(),
-                'tested'      => '',
-                'requires_php'=> '',
+            $transient->response[ $plugin_key ] = (object) array(
+                'slug'         => 'santa-list',
+                'plugin'       => $plugin_key,
+                'new_version'  => $latest,
+                'url'          => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
+                'package'      => self::get_download_url( $release ),
+                'icons'        => array(),
+                'banners'      => array(),
+                'tested'       => '',
+                'requires_php' => '',
                 'compatibility'=> new stdClass(),
             );
         } else {
-            // No update — tell WP this plugin is "checked" so it won't nag
-            $transient->no_update[ self::PLUGIN_SLUG ] = (object) array(
-                'slug'       => 'santa-list',
-                'plugin'     => self::PLUGIN_SLUG,
-                'new_version'=> SANTA_LIST_VERSION,
-                'url'        => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
-                'package'    => '',
+            $transient->no_update[ $plugin_key ] = (object) array(
+                'slug'        => 'santa-list',
+                'plugin'      => $plugin_key,
+                'new_version' => SANTA_LIST_VERSION,
+                'url'         => 'https://github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
+                'package'     => '',
             );
         }
 
@@ -92,6 +100,7 @@ class Santa_List_Updater {
         if ( $action !== 'plugin_information' ) {
             return $result;
         }
+        // Match on the short slug regardless of the installed folder name
         if ( ! isset( $args->slug ) || $args->slug !== 'santa-list' ) {
             return $result;
         }
