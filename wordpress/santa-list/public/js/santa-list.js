@@ -13,7 +13,9 @@
     function setLoading(loading) {
         var $btn = $('#santa-list-submit');
         $btn.prop('disabled', loading);
-        $btn.text(loading ? santaList.i18n.submitting : '🎅 ' + (window.santaListI18n ? santaListI18n.submit : "Add to Santa's List"));
+        $btn.html(loading
+            ? '<span>⏳</span> ' + santaList.i18n.submitting
+            : '<span>🎅</span> Add to Santa\'s List');
     }
 
     function getLocation() {
@@ -116,6 +118,12 @@
             doSubmit(null);
         }
     });
+
+    // Radio card visual feedback (fallback for browsers without :has() support)
+    $('input[name="list_type"]').on('change', function () {
+        $('.santa-list-radio').removeClass('santa-list-radio--selected');
+        $(this).closest('.santa-list-radio').addClass('santa-list-radio--selected');
+    }).filter(':checked').trigger('change');
 
     // Auto-uppercase last initial
     $('#sl_last_initial').on('input', function () {
