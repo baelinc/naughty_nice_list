@@ -447,6 +447,67 @@
 
 .santa-bulk-count { color: #888; margin-left: auto; }
 
+/* ── Geofence map UI ── */
+.santa-geo-paste-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    max-width: 600px;
+    margin-bottom: 8px;
+}
+
+.santa-geo-paste-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1.5px dashed rgba(192,57,43,0.4);
+    border-radius: 8px;
+    font-size: 0.875em;
+    color: #555;
+    background: #fef9f8;
+}
+
+.santa-geo-paste-row input:focus {
+    border-color: #c0392b;
+    background: #fff;
+    outline: none;
+}
+
+.santa-geo-fields {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.santa-geo-fields label {
+    font-size: 0.875em;
+    font-weight: 600;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.santa-geo-fields input[type="text"] {
+    padding: 8px 10px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 7px;
+    font-size: 0.875em;
+    font-family: "SFMono-Regular", "Consolas", monospace;
+    color: #1a1a1a;
+}
+
+.santa-geo-fields input[type="text"]:focus {
+    border-color: #c0392b;
+    box-shadow: 0 0 0 2px rgba(192,57,43,0.1);
+    outline: none;
+}
+
+#sl_geofence_map {
+    margin-top: 4px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
     .santa-list-admin-header { flex-direction: column; text-align: center; }

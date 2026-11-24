@@ -49,10 +49,21 @@ class Santa_List_Admin {
     public static function enqueue_assets( $hook ) {
         if ( strpos( $hook, 'santa-list' ) === false ) return;
         wp_enqueue_style( 'santa-list-admin', SANTA_LIST_URL . 'admin/admin.css', array(), SANTA_LIST_VERSION );
+
+        // Leaflet (CDN, only on settings page)
+        if ( strpos( $hook, 'santa-list-settings' ) !== false ) {
+            wp_enqueue_style(  'leaflet',        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',  array(), '1.9.4' );
+            wp_enqueue_script( 'leaflet',        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',   array(), '1.9.4', true );
+        }
+
         wp_enqueue_script( 'santa-list-admin', SANTA_LIST_URL . 'admin/admin.js', array( 'jquery' ), SANTA_LIST_VERSION, true );
+        $settings = get_option( 'santa_list_settings', array() );
         wp_localize_script( 'santa-list-admin', 'santaListAdmin', array(
-            'nonce'   => wp_create_nonce( 'santa_list_admin' ),
-            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'      => wp_create_nonce( 'santa_list_admin' ),
+            'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+            'savedLat'   => isset( $settings['geo_lat'] )    ? floatval( $settings['geo_lat'] )  : '',
+            'savedLng'   => isset( $settings['geo_lng'] )    ? floatval( $settings['geo_lng'] )  : '',
+            'savedRadius'=> isset( $settings['geo_radius'] ) ? intval( $settings['geo_radius'] ) : 500,
         ) );
     }
 
@@ -72,9 +83,17 @@ class Santa_List_Admin {
         // Entry code
         $output['entry_code'] = strtoupper( sanitize_text_field( $input['entry_code'] ?? '' ) );
 
-        // Geofence
-        $output['geo_lat']    = isset( $input['geo_lat'] )    ? floatval( $input['geo_lat'] )    : 0;
-        $output['geo_lng']    = isset( $input['geo_lng'] )    ? floatval( $input['geo_lng'] )    : 0;
+        // Geofence — sanitize_text_field first so commas/spaces are stripped safely
+        $raw_lat = sanitize_text_field( $input['geo_lat'] ?? '' );
+        $raw_lng = sanitize_text_field( $input['geo_lng'] ?? '' );
+        // Accept "30.27, -93.37" pasted into the lat field
+        if ( strpos( $raw_lat, ',' ) !== false ) {
+            $parts   = array_map( 'trim', explode( ',', $raw_lat, 2 ) );
+            $raw_lat = $parts[0];
+            $raw_lng = $parts[1];
+        }
+        $output['geo_lat']    = $raw_lat !== '' ? floatval( $raw_lat ) : 0;
+        $output['geo_lng']    = $raw_lng !== '' ? floatval( $raw_lng ) : 0;
         $output['geo_radius'] = isset( $input['geo_radius'] ) ? absint( $input['geo_radius'] )   : 500;
 
         // Display settings
@@ -238,21 +257,49 @@ class Santa_List_Admin {
                     <tr>
                         <th><?php esc_html_e( 'Geofence Center', 'santa-list' ); ?></th>
                         <td>
-                            <label><?php esc_html_e( 'Latitude', 'santa-list' ); ?>
-                            <input type="number" name="santa_list_settings[geo_lat]" step="0.0000001"
-                                   value="<?php echo esc_attr( $settings['geo_lat'] ?? '' ); ?>" class="regular-text" /></label>
-                            <br /><br />
-                            <label><?php esc_html_e( 'Longitude', 'santa-list' ); ?>
-                            <input type="number" name="santa_list_settings[geo_lng]" step="0.0000001"
-                                   value="<?php echo esc_attr( $settings['geo_lng'] ?? '' ); ?>" class="regular-text" /></label>
-                            <p class="description"><?php esc_html_e( 'Find your coordinates at maps.google.com (right-click → "What\'s here?").', 'santa-list' ); ?></p>
+                            <?php
+                            $geo_lat = $settings['geo_lat'] ?? '';
+                            $geo_lng = $settings['geo_lng'] ?? '';
+                            ?>
+                            <div class="santa-geo-paste-row">
+                                <input type="text" id="sl_geo_paste"
+                                       placeholder="Paste Google Maps coordinates, e.g. 30.271570, -93.375691"
+                                       class="large-text" autocomplete="off" />
+                                <button type="button" id="sl_geo_my_location" class="button">
+                                    📍 <?php esc_html_e( 'Use My Location', 'santa-list' ); ?>
+                                </button>
+                            </div>
+                            <p class="description" style="margin-bottom:10px;">
+                                <?php esc_html_e( 'Paste the coordinates Google Maps gives you (right-click any spot → copy the numbers shown), or click "Use My Location".', 'santa-list' ); ?>
+                            </p>
+                            <div class="santa-geo-fields">
+                                <label><?php esc_html_e( 'Latitude', 'santa-list' ); ?>&nbsp;
+                                    <input type="text" id="sl_geo_lat" name="santa_list_settings[geo_lat]"
+                                           value="<?php echo esc_attr( $geo_lat ); ?>"
+                                           placeholder="e.g. 30.271570" size="18" />
+                                </label>
+                                &nbsp;&nbsp;
+                                <label><?php esc_html_e( 'Longitude', 'santa-list' ); ?>&nbsp;
+                                    <input type="text" id="sl_geo_lng" name="santa_list_settings[geo_lng]"
+                                           value="<?php echo esc_attr( $geo_lng ); ?>"
+                                           placeholder="e.g. -93.375691" size="18" />
+                                </label>
+                            </div>
                         </td>
                     </tr>
                     <tr>
                         <th><label for="sl_geo_radius"><?php esc_html_e( 'Geofence Radius (feet)', 'santa-list' ); ?></label></th>
                         <td>
                             <input type="number" id="sl_geo_radius" name="santa_list_settings[geo_radius]"
-                                   value="<?php echo esc_attr( $settings['geo_radius'] ?? 500 ); ?>" min="50" max="10000" />
+                                   value="<?php echo esc_attr( $settings['geo_radius'] ?? 500 ); ?>" min="50" max="52800" step="50" />
+                            <span class="description">&nbsp;feet &nbsp;(<span id="sl_radius_meters">—</span> meters)</span>
+                        </td>
+                    </tr>
+                    <tr id="sl_map_row">
+                        <th><?php esc_html_e( 'Map Preview', 'santa-list' ); ?></th>
+                        <td>
+                            <div id="sl_geofence_map" style="width:100%;max-width:600px;height:340px;border-radius:10px;border:1px solid #ddd;"></div>
+                            <p class="description"><?php esc_html_e( 'The circle shows the geofence. Drag the marker to adjust.', 'santa-list' ); ?></p>
                         </td>
                     </tr>
                 </table>
