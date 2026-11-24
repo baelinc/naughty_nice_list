@@ -1,0 +1,11 @@
+{
+    "name": "fpp-santa-list",
+    "longName": "Santa's Naughty & Nice List",
+    "description": "Displays a scrolling Naughty & Nice List on LED matrix panels via FPP",
+    "version": "1.0.0",
+    "minFPPVersion": "6.0",
+    "maxFPPVersion": "11.0",
+    "author": "baelinc",
+    "homepage": "https://github.com/baelinc/naughty_nice_list",
+    "category": "LED Matrix"
+}

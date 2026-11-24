@@ -1,0 +1,12 @@
+# Ignore local config overrides
+config/settings.local.conf
+
+# Runtime files
+*.log
+*.pid
+/tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/

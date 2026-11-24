@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Santa's List - Start",
+        "description": "Start the Santa's Naughty & Nice List display service",
+        "args": [],
+        "script": "start_santa.sh"
+    },
+    {
+        "name": "Santa's List - Stop",
+        "description": "Stop the Santa's Naughty & Nice List display service and clear panels",
+        "args": [],
+        "script": "stop_santa.sh"
+    },
+    {
+        "name": "Santa's List - Clear Panels",
+        "description": "Turn off the Santa's List LED panels",
+        "args": [],
+        "script": "clear_matrix.sh"
+    }
+]
