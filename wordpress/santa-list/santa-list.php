@@ -37,3 +37,25 @@ if ( ! function_exists( 'santa_list_init' ) ) {
         }
     }
 }
+
+/**
+ * Register the standalone QR page template so WordPress finds it
+ * even though it lives inside the plugin folder rather than the theme.
+ */
+add_filter( 'theme_page_templates', function( $templates ) {
+    $templates['santa-list/public/page-santa-list.php'] = __( "Santa's List — Standalone", 'santa-list' );
+    return $templates;
+} );
+
+add_filter( 'template_include', function( $template ) {
+    if ( is_page() ) {
+        $meta = get_post_meta( get_the_ID(), '_wp_page_template', true );
+        if ( $meta === 'santa-list/public/page-santa-list.php' ) {
+            $candidate = SANTA_LIST_DIR . 'public/page-santa-list.php';
+            if ( file_exists( $candidate ) ) {
+                return $candidate;
+            }
+        }
+    }
+    return $template;
+} );
