@@ -34,12 +34,59 @@
     }
 
     function submitForm(formData) {
-        return $.ajax({
+        // Try REST API first; fall back to admin-ajax if it fails or returns a nonce error
+        var restDeferred = $.Deferred();
+
+        $.ajax({
             url: santaList.restUrl + '/submit',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),
+        }).done(function (res) {
+            restDeferred.resolve(res);
+        }).fail(function (xhr) {
+            // If REST returned 403 (nonce/security) or is unavailable, try AJAX fallback
+            var code = xhr.status;
+            var msg  = xhr.responseJSON ? xhr.responseJSON.message : '';
+            if (code === 403 || code === 0 || code === 401 ||
+                (msg && msg.toLowerCase().indexOf('security') !== -1)) {
+                // Fall back to wp_ajax endpoint
+                $.ajax({
+                    url:      santaList.ajaxUrl,
+                    method:   'POST',
+                    data: {
+                        action:       'santa_list_submit',
+                        nonce:        formData.nonce,
+                        first_name:   formData.first_name,
+                        last_initial: formData.last_initial,
+                        list_type:    formData.list_type,
+                        entry_code:   formData.entry_code  || '',
+                        latitude:     formData.latitude    || '',
+                        longitude:    formData.longitude   || '',
+                    },
+                }).done(function (res) {
+                    // wp_send_json wraps in {success, data}
+                    if (res && res.success) {
+                        restDeferred.resolve(res.data);
+                    } else {
+                        restDeferred.resolve({ success: false, message: (res.data && res.data.message) || 'Something went wrong.' });
+                    }
+                }).fail(function (xhr2) {
+                    var msg2 = 'Something went wrong. Please try again.';
+                    if (xhr2.responseJSON && xhr2.responseJSON.data && xhr2.responseJSON.data.message) {
+                        msg2 = xhr2.responseJSON.data.message;
+                    }
+                    restDeferred.resolve({ success: false, message: msg2 });
+                });
+            } else {
+                // Other HTTP error — surface the message
+                var errMsg = 'Something went wrong. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) errMsg = xhr.responseJSON.message;
+                restDeferred.resolve({ success: false, message: errMsg });
+            }
         });
+
+        return restDeferred.promise();
     }
 
     $('#santa-list-form').on('submit', function (e) {
@@ -93,17 +140,11 @@
                     if (res.success) {
                         showMessage(res.message, 'success');
                         $('#santa-list-form')[0].reset();
+                        // Re-trigger radio highlight after reset
+                        $('input[name="list_type"]:first').prop('checked', true).trigger('change');
                     } else {
                         showMessage(res.message || 'Something went wrong. Please try again.', 'error');
                     }
-                })
-                .fail(function (xhr) {
-                    setLoading(false);
-                    var msg = 'Something went wrong. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    showMessage(msg, 'error');
                 });
         };
 

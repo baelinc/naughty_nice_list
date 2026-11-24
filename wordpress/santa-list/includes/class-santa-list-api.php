@@ -70,9 +70,15 @@ class Santa_List_API {
      * REST: submit a name.
      */
     public static function rest_submit( WP_REST_Request $request ) {
-        // Verify nonce
-        if ( ! wp_verify_nonce( $request->get_param( 'nonce' ), 'santa_list_submit' ) ) {
-            return new WP_REST_Response( array( 'success' => false, 'message' => __( 'Security check failed.', 'santa-list' ) ), 403 );
+        // Verify nonce — accept both REST and AJAX nonce actions in case of caching
+        $nonce = $request->get_param( 'nonce' );
+        $valid = wp_verify_nonce( $nonce, 'santa_list_submit' )
+              || wp_verify_nonce( $nonce, 'wp_rest' );
+        if ( ! $valid ) {
+            return new WP_REST_Response( array(
+                'success' => false,
+                'message' => __( 'Your session has expired. Please refresh the page and try again.', 'santa-list' ),
+            ), 403 );
         }
 
         return self::process_submission( array(
