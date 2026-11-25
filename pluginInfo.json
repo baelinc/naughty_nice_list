@@ -1,13 +1,34 @@
 {
-    "name": "fpp-santa-list",
-    "longName": "Santa's Naughty & Nice List",
-    "description": "Fetches the Naughty & Nice List from your WordPress site and scrolls it on LED matrix panels via FPP overlays.",
-    "version": "1.0.0",
-    "minFPPVersion": "6.0",
-    "maxFPPVersion": "99.0",
+    "repoName": "naughty_nice_list",
+    "name": "Santa's Naughty & Nice List",
     "author": "baelinc",
-    "homepage": "https://github.com/baelinc/naughty_nice_list",
-    "category": "LED Matrix",
-    "srcUrl": "https://github.com/baelinc/naughty_nice_list",
-    "repoName": "naughty_nice_list"
+    "description": "Fetches the Naughty & Nice List from your WordPress site and scrolls it on LED matrix panels via FPP overlays.",
+    "homeURL": "https://github.com/baelinc/naughty_nice_list",
+    "srcURL": "https://github.com/baelinc/naughty_nice_list.git",
+    "bugURL": "https://github.com/baelinc/naughty_nice_list/issues",
+    "allowUpdates": 1,
+    "versions": [
+        {
+            "minFPPVersion": "6.0",
+            "maxFPPVersion": "9.99",
+            "branch": "main",
+            "sha": "",
+            "dependencies": {
+                "plugins": [],
+                "packages": [],
+                "scripts": []
+            }
+        },
+        {
+            "minFPPVersion": "10.0",
+            "maxFPPVersion": "0",
+            "branch": "main",
+            "sha": "",
+            "dependencies": {
+                "plugins": [],
+                "packages": [],
+                "scripts": []
+            }
+        }
+    ]
 }
