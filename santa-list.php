@@ -1,10 +1,12 @@
 <?php
 /**
  * Santa's List FPP Plugin — Settings Page
- * Accessible in FPP under: Content Setup → Plugin Manager → Santa's List → Settings
+ * Accessible in FPP under: Content Setup → Santa's Naughty & Nice List
  */
 
-$plugin_dir  = dirname(__DIR__);
+$plugin_dir  = __DIR__;
+$plugin_name = basename(__DIR__);
+$self_url    = 'plugin.php?plugin=' . urlencode($plugin_name) . '&page=santa-list.php';
 $config_file = $plugin_dir . '/config/settings.conf';
 $version_file= $plugin_dir . '/pluginInfo.json';
 $message     = '';
@@ -116,15 +118,10 @@ if (file_exists($pid_file)) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Santa's List — FPP Settings</title>
-    <style>
+<style>
         *, *::before, *::after { box-sizing: border-box; }
 
-        body {
+        .sl-wrap {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             max-width: 680px;
             margin: 24px auto;
@@ -302,8 +299,7 @@ if (file_exists($pid_file)) {
         .sl-version-info { font-size: .875em; color: #555; }
         .sl-version-info strong { color: #1a1a1a; }
     </style>
-</head>
-<body>
+<div class="sl-wrap">
 
 <div class="sl-header">
     <div class="sl-header-icon">🎅</div>
@@ -343,16 +339,16 @@ if (file_exists($pid_file)) {
 <div class="sl-up-to-date">
     ✅ <strong>Up to date</strong> — v<?= htmlspecialchars($current_version) ?> is the latest release.
     &nbsp;
-    <a href="?check_update=1" style="font-size:.85em;color:#555;">Check again</a>
+    <a href="<?= htmlspecialchars($self_url) ?>&amp;check_update=1" style="font-size:.85em;color:#555;">Check again</a>
 </div>
 <?php else: ?>
 <div style="margin-bottom:14px;">
-    <a href="?check_update=1" class="sl-btn sl-btn--secondary" style="font-size:.85em;">🔄 Check for Updates</a>
+    <a href="<?= htmlspecialchars($self_url) ?>&amp;check_update=1" class="sl-btn sl-btn--secondary" style="font-size:.85em;">🔄 Check for Updates</a>
 </div>
 <?php endif; ?>
 
 <!-- ── Settings form ──────────────────────────────────────────────────── -->
-<form method="post">
+<form method="post" action="<?= htmlspecialchars($self_url) ?>">
 
     <div class="sl-card">
         <div class="sl-card-header">WordPress Connection</div>
@@ -440,12 +436,11 @@ if (file_exists($pid_file)) {
                 &nbsp;·&nbsp; <span style="color:#bbb;">Checked <?= round((time() - $cached['fetched_at']) / 60) ?>m ago</span>
                 <?php endif; ?>
             </div>
-            <a href="?check_update=1" class="sl-btn sl-btn--secondary" style="font-size:.8em;padding:7px 14px;">
+            <a href="<?= htmlspecialchars($self_url) ?>&amp;check_update=1" class="sl-btn sl-btn--secondary" style="font-size:.8em;padding:7px 14px;">
                 🔄 Check Now
             </a>
         </div>
     </div>
 </div>
 
-</body>
-</html>
+</div>
